@@ -193,8 +193,23 @@ module.exports = Backbone.View.extend({
    * @param {String} selector
    * @return {Boolean}
    */
-  matches(el, selector, useBody) {
-    return matches.call(el, selector);
+  matches(el, selector, useBody, debug = false) {
+    var startEl;
+
+    // if we don't have a parentNode, create a node so the
+    // querySelectorAll() call below can find something.
+    if (!el.parentNode) {
+      startEl = document.createElement('div');
+      startEl.appendChild(el);
+    } else {
+      startEl = el.parentNode;
+    }
+
+    //startEl = useBody ? startEl.ownerDocument.body : startEl;
+    var els = startEl.querySelectorAll(selector);
+    var i = 0;
+    while (els[i] && els[i] !== el) ++i;
+    return !!els[i];
   },
 
   /**

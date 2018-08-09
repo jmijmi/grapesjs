@@ -13108,7 +13108,7 @@ LineWidget.prototype.changed = function () {
   this.height = null;
   var diff = widgetHeight(this) - oldH;
   if (!diff) { return }
-  updateLineHeight(line, line.height + diff);
+  if (!lineIsHidden(this.doc, line)) { updateLineHeight(line, line.height + diff); }
   if (cm) {
     runInOp(cm, function () {
       cm.curOp.forceUpdate = true;
@@ -14035,7 +14035,7 @@ keyMap.pcDefault = {
   "Ctrl-G": "findNext", "Shift-Ctrl-G": "findPrev", "Shift-Ctrl-F": "replace", "Shift-Ctrl-R": "replaceAll",
   "Ctrl-[": "indentLess", "Ctrl-]": "indentMore",
   "Ctrl-U": "undoSelection", "Shift-Ctrl-U": "redoSelection", "Alt-U": "redoSelection",
-  fallthrough: "basic"
+  "fallthrough": "basic"
 };
 // Very basic readline/emacs-style bindings, which are standard on Mac.
 keyMap.emacsy = {
@@ -14053,7 +14053,7 @@ keyMap.macDefault = {
   "Cmd-G": "findNext", "Shift-Cmd-G": "findPrev", "Cmd-Alt-F": "replace", "Shift-Cmd-Alt-F": "replaceAll",
   "Cmd-[": "indentLess", "Cmd-]": "indentMore", "Cmd-Backspace": "delWrappedLineLeft", "Cmd-Delete": "delWrappedLineRight",
   "Cmd-U": "undoSelection", "Shift-Cmd-U": "redoSelection", "Ctrl-Up": "goDocStart", "Ctrl-Down": "goDocEnd",
-  fallthrough: ["basic", "emacsy"]
+  "fallthrough": ["basic", "emacsy"]
 };
 keyMap["default"] = mac ? keyMap.macDefault : keyMap.pcDefault;
 
@@ -15186,6 +15186,7 @@ function CodeMirror$1(place, options) {
 
   var doc = options.value;
   if (typeof doc == "string") { doc = new Doc(doc, options.mode, null, options.lineSeparator, options.direction); }
+  else if (options.mode) { doc.modeOption = options.mode; }
   this.doc = doc;
 
   var input = new CodeMirror$1.inputStyles[options.inputStyle](this);
@@ -17089,7 +17090,7 @@ CodeMirror$1.fromTextArea = fromTextArea;
 
 addLegacyProps(CodeMirror$1);
 
-CodeMirror$1.version = "5.39.0";
+CodeMirror$1.version = "5.39.2";
 
 return CodeMirror$1;
 
@@ -19719,10 +19720,10 @@ if (!CodeMirror.mimeModes.hasOwnProperty("text/html"))
 
 /***/ }),
 
-/***/ "./node_modules/process/browser.js":
-/*!*****************************************!*\
-  !*** ./node_modules/process/browser.js ***!
-  \*****************************************/
+/***/ "./node_modules/node-libs-browser/node_modules/process/browser.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/node-libs-browser/node_modules/process/browser.js ***!
+  \************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -20373,7 +20374,7 @@ exports.default = Promise;
     attachTo.clearImmediate = clearImmediate;
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../process/browser.js */ "./node_modules/process/browser.js")))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../node-libs-browser/node_modules/process/browser.js */ "./node_modules/node-libs-browser/node_modules/process/browser.js")))
 
 /***/ }),
 
@@ -22816,6 +22817,8 @@ module.exports = __webpack_require__(/*! backbone */ "./node_modules/backbone/ba
 "use strict";
 
 
+var _underscore = __webpack_require__(/*! underscore */ "./node_modules/underscore/underscore.js");
+
 module.exports = __webpack_require__(/*! ./AssetView */ "./src/asset_manager/view/AssetView.js").extend({
   events: {
     'click [data-toggle=asset-remove]': 'onRemove',
@@ -22855,7 +22858,7 @@ module.exports = __webpack_require__(/*! ./AssetView */ "./src/asset_manager/vie
     this.collection.trigger('deselectAll');
     this.$el.addClass(this.pfx + 'highlight');
 
-    if (typeof onClick === 'function') {
+    if ((0, _underscore.isFunction)(onClick)) {
       onClick(model);
     } else {
       this.updateTarget(this.collection.target);
@@ -22868,11 +22871,12 @@ module.exports = __webpack_require__(/*! ./AssetView */ "./src/asset_manager/vie
    * @private
    * */
   onDblClick: function onDblClick() {
-    var em = this.em;
-    var onDblClick = this.config.onDblClick;
-    var model = this.model;
+    var em = this.em,
+        model = this.model;
 
-    if (typeof onDblClick === 'function') {
+    var onDblClick = this.config.onDblClick;
+
+    if ((0, _underscore.isFunction)(onDblClick)) {
       onDblClick(model);
     } else {
       this.updateTarget(this.collection.target);
@@ -22880,9 +22884,7 @@ module.exports = __webpack_require__(/*! ./AssetView */ "./src/asset_manager/vie
     }
 
     var onSelect = this.collection.onSelect;
-    if (typeof onSelect == 'function') {
-      onSelect(this.model);
-    }
+    (0, _underscore.isFunction)(onSelect) && onSelect(model);
   },
 
 
@@ -25437,25 +25439,8 @@ module.exports = {
 "use strict";
 
 
-/**
- * - [addGenerator](#addgenerator)
- * - [getGenerator](#getgenerator)
- * - [getGenerators](#getgenerators)
- * - [addViewer](#addviewer)
- * - [getViewer](#getviewer)
- * - [getViewers](#getviewers)
- * - [updateViewer](#updateviewer)
- * - [getCode](#getcode)
- *
- *
- * Before using methods you should get first the module from the editor instance, in this way:
- *
- * ```js
- * var codeManager = editor.CodeManager;
- * ```
- *
- * @module CodeManager
- */
+var _underscore = __webpack_require__(/*! underscore */ "./node_modules/underscore/underscore.js");
+
 module.exports = function () {
   var c = {},
       defaults = __webpack_require__(/*! ./config/config */ "./src/code_manager/config/config.js"),
@@ -25470,6 +25455,8 @@ module.exports = function () {
       defGenerators = {},
       viewers = {},
       defViewers = {};
+
+  var defaultViewer = 'CodeMirror';
 
   return {
     getConfig: function getConfig() {
@@ -25598,6 +25585,20 @@ module.exports = function () {
     getViewers: function getViewers() {
       return viewers;
     },
+    createViewer: function createViewer() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var type = !(0, _underscore.isUndefined)(opts.type) ? opts.type : defaultViewer;
+      var viewer = this.getViewer(type) && this.getViewer(type).clone();
+      var cont = document.createElement('div');
+      var txtarea = document.createElement('textarea');
+      cont.appendChild(txtarea);
+      viewer.set(opts);
+      viewer.init(txtarea);
+      viewer.setElement(cont);
+
+      return viewer;
+    },
 
 
     /**
@@ -25657,7 +25658,25 @@ module.exports = function () {
       }return this;
     }
   };
-};
+}; /**
+    * - [addGenerator](#addgenerator)
+    * - [getGenerator](#getgenerator)
+    * - [getGenerators](#getgenerators)
+    * - [addViewer](#addviewer)
+    * - [getViewer](#getviewer)
+    * - [getViewers](#getviewers)
+    * - [updateViewer](#updateviewer)
+    * - [getCode](#getcode)
+    *
+    *
+    * Before using methods you should get first the module from the editor instance, in this way:
+    *
+    * ```js
+    * var codeManager = editor.CodeManager;
+    * ```
+    *
+    * @module CodeManager
+    */
 
 /***/ }),
 
@@ -25701,8 +25720,58 @@ module.exports = _backbone2.default.Model.extend({
       lineWrapping: true,
       mode: this.get('codeName')
     }, this.attributes));
+    this.element = el;
 
     return this;
+  },
+  getEditor: function getEditor() {
+    return this.editor;
+  },
+
+
+  /**
+   * The element where the viewer is attached
+   * @return {HTMLElement}
+   */
+  getElement: function getElement() {
+    return this.element;
+  },
+
+
+  /**
+   * Set the element which contains the viewer attached.
+   * Generally, it should be just a textarea, but some editor might require
+   * a container for it some in that case this method can be used
+   * @param {HTMLElement} el
+   * @return {self}
+   */
+  setElement: function setElement(el) {
+    this.element = el;
+    return this;
+  },
+
+
+  /**
+   * Refresh the viewer
+   * @return {self}
+   */
+  refresh: function refresh() {
+    this.getEditor().refresh();
+    return this;
+  },
+
+
+  /**
+   * Focus the viewer
+   * @return {self}
+   */
+  focus: function focus() {
+    this.getEditor().focus();
+    return this;
+  },
+  getContent: function getContent() {
+    var ed = this.getEditor();
+    return ed && ed.getValue();
   },
 
 
@@ -26140,6 +26209,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                                                                                                                                                                                      * * [add](#add)
                                                                                                                                                                                                      * * [get](#get)
                                                                                                                                                                                                      * * [has](#has)
+                                                                                                                                                                                                     * * [run](#run)
+                                                                                                                                                                                                     * * [stop](#stop)
                                                                                                                                                                                                      *
                                                                                                                                                                                                      * @module Commands
                                                                                                                                                                                                      */
@@ -26372,6 +26443,46 @@ module.exports = function () {
      * */
     has: function has(id) {
       return !!commands[id];
+    },
+
+
+    /**
+     * Execute the command
+     * @param {String} id Command ID
+     * @param {Object} [options={}] Options
+     * @return {*} The return is defined by the command
+     * @example
+     * commands.run('myCommand', { someOption: 1 });
+     */
+    run: function run(id) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var result = void 0;
+      var command = this.get(id);
+      var editor = em.get('Editor');
+      if (command) result = command.callRun(editor, options);
+
+      return result;
+    },
+
+
+    /**
+     * Stop the command
+     * @param {String} id Command ID
+     * @param {Object} [options={}] Options
+     * @return {*} The return is defined by the command
+     * @example
+     * commands.stop('myCommand', { someOption: 1 });
+     */
+    stop: function stop(id) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var result = void 0;
+      var command = this.get(id);
+      var editor = em.get('Editor');
+      if (command) result = command.callStop(editor, options);
+
+      return result;
     },
 
 
@@ -26712,7 +26823,7 @@ module.exports = {
   run: function run(ed, sender) {
     var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-    if (!ed.Canvas.hasFocus() || ed.getModel().isEditing()) return;
+    if (ed.getModel().isEditing()) return;
     var components = opts.component || ed.getSelectedAll();
     components = (0, _underscore.isArray)(components) ? [].concat(_toConsumableArray(components)) : [components];
 
@@ -28329,7 +28440,6 @@ module.exports = {
     // Adjust tools scroll top
     if (!this.adjScroll) {
       this.adjScroll = 1;
-      this.onFrameScroll(e);
       this.updateAttached();
     }
 
@@ -28724,6 +28834,8 @@ module.exports = {
    * @param {Object} mod
    */
   updateToolbar: function updateToolbar(mod) {
+    var _this = this;
+
     var em = this.config.em;
     var model = mod == em ? em.getSelected() : mod;
     var toolbarEl = this.canvas.getToolbarEl();
@@ -28756,7 +28868,11 @@ module.exports = {
 
       this.toolbar.reset(toolbar);
       var view = model.view;
-      view && this.updateToolbarPos(view.el);
+      toolbarStyle.top = '-100px';
+      toolbarStyle.left = 0;
+      setTimeout(function () {
+        return view && _this.updateToolbarPos(view.el);
+      }, 0);
     } else {
       toolbarStyle.display = 'none';
     }
@@ -28772,8 +28888,7 @@ module.exports = {
     var unit = 'px';
     var toolbarEl = this.canvas.getToolbarEl();
     var toolbarStyle = toolbarEl.style;
-    var origDisp = toolbarStyle.display;
-    toolbarStyle.display = 'block';
+    toolbarStyle.opacity = 0;
     var pos = this.canvas.getTargetToElementDim(toolbarEl, el, {
       elPos: elPos,
       event: 'toolbarPosUpdate'
@@ -28782,7 +28897,7 @@ module.exports = {
       var leftPos = pos.left + pos.elementWidth - pos.targetWidth;
       toolbarStyle.top = pos.top + unit;
       toolbarStyle.left = (leftPos < 0 ? 0 : leftPos) + unit;
-      toolbarStyle.display = origDisp;
+      toolbarStyle.opacity = '';
     }
   },
 
@@ -28835,7 +28950,6 @@ module.exports = {
 
   /**
    * Update attached elements, eg. component toolbar
-   * @return {[type]} [description]
    */
   updateAttached: function updateAttached(updated) {
     var model = this.em.getSelected();
@@ -29071,148 +29185,148 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var $ = _backbone2.default.$;
 
 module.exports = {
-  getOffsetMethod: function getOffsetMethod(state) {
-    var method = state || '';
-    return 'get' + method + 'OffsetViewerEl';
-  },
-  run: function run(editor, sender, opts) {
-    var opt = opts || {};
-    var state = opt.state || '';
-    var config = editor.getConfig();
+    getOffsetMethod: function getOffsetMethod(state) {
+        var method = state || '';
+        return 'get' + method + 'OffsetViewerEl';
+    },
+    run: function run(editor, sender, opts) {
+        var opt = opts || {};
+        var state = opt.state || '';
+        var config = editor.getConfig();
 
-    if (!config.showOffsets || !config.showOffsetsSelected && state == 'Fixed') {
-      return;
+        if (!config.showOffsets || !config.showOffsetsSelected && state == 'Fixed') {
+            return;
+        }
+
+        var canvas = editor.Canvas;
+        var el = opt.el || '';
+        var pos = opt.elPos || canvas.getElementPos(el);
+        var style = window.getComputedStyle(el);
+        var ppfx = this.ppfx;
+        var stateVar = state + 'State';
+        var method = this.getOffsetMethod(state);
+        var offsetViewer = canvas[method]();
+        offsetViewer.style.display = 'block';
+
+        var marginT = this['marginT' + state];
+        var marginB = this['marginB' + state];
+        var marginL = this['marginL' + state];
+        var marginR = this['marginR' + state];
+        var padT = this['padT' + state];
+        var padB = this['padB' + state];
+        var padL = this['padL' + state];
+        var padR = this['padR' + state];
+
+        if (!this[stateVar]) {
+            var stateLow = state.toLowerCase();
+            var marginName = stateLow + 'margin-v';
+            var paddingName = stateLow + 'padding-v';
+            var marginV = $('<div class="' + ppfx + 'marginName">').get(0);
+            var paddingV = $('<div class="' + ppfx + 'paddingName">').get(0);
+            var marginEls = ppfx + marginName + '-el';
+            var paddingEls = ppfx + paddingName + '-el';
+            var fullMargName = marginEls + ' ' + (ppfx + marginName);
+            var fullPadName = paddingEls + ' ' + (ppfx + paddingName);
+            marginT = $('<div class="' + fullMargName + '-top"></div>').get(0);
+            marginB = $('<div class="' + fullMargName + '-bottom"></div>').get(0);
+            marginL = $('<div class="' + fullMargName + '-left"></div>').get(0);
+            marginR = $('<div class="' + fullMargName + '-right"></div>').get(0);
+            padT = $('<div class="' + fullPadName + '-top"></div>').get(0);
+            padB = $('<div class="' + fullPadName + '-bottom"></div>').get(0);
+            padL = $('<div class="' + fullPadName + '-left"></div>').get(0);
+            padR = $('<div class="' + fullPadName + '-right"></div>').get(0);
+            this['marginT' + state] = marginT;
+            this['marginB' + state] = marginB;
+            this['marginL' + state] = marginL;
+            this['marginR' + state] = marginR;
+            this['padT' + state] = padT;
+            this['padB' + state] = padB;
+            this['padL' + state] = padL;
+            this['padR' + state] = padR;
+            marginV.appendChild(marginT);
+            marginV.appendChild(marginB);
+            marginV.appendChild(marginL);
+            marginV.appendChild(marginR);
+            paddingV.appendChild(padT);
+            paddingV.appendChild(padB);
+            paddingV.appendChild(padL);
+            paddingV.appendChild(padR);
+            offsetViewer.appendChild(marginV);
+            offsetViewer.appendChild(paddingV);
+            this[stateVar] = '1';
+        }
+
+        var unit = 'px';
+        var marginLeftSt = style.marginLeft.replace(unit, '');
+        var marginTopSt = parseInt(style.marginTop.replace(unit, ''));
+        var marginBottomSt = parseInt(style.marginBottom.replace(unit, ''));
+        var mtStyle = marginT.style;
+        var mbStyle = marginB.style;
+        var mlStyle = marginL.style;
+        var mrStyle = marginR.style;
+        var ptStyle = padT.style;
+        var pbStyle = padB.style;
+        var plStyle = padL.style;
+        var prStyle = padR.style;
+        var posLeft = parseInt(pos.left);
+
+        // Margin style
+        mtStyle.height = style.marginTop;
+        mtStyle.width = style.width;
+        mtStyle.top = pos.top - style.marginTop.replace(unit, '') + unit;
+        mtStyle.left = posLeft + unit;
+
+        mbStyle.height = style.marginBottom;
+        mbStyle.width = style.width;
+        mbStyle.top = pos.top + pos.height + unit;
+        mbStyle.left = posLeft + unit;
+
+        var marginSideH = pos.height + marginTopSt + marginBottomSt + unit;
+        var marginSideT = pos.top - marginTopSt + unit;
+        mlStyle.height = marginSideH;
+        mlStyle.width = style.marginLeft;
+        mlStyle.top = marginSideT;
+        mlStyle.left = posLeft - marginLeftSt + unit;
+
+        mrStyle.height = marginSideH;
+        mrStyle.width = style.marginRight;
+        mrStyle.top = marginSideT;
+        mrStyle.left = posLeft + pos.width + unit;
+
+        // Padding style
+        var padTop = parseInt(style.paddingTop.replace(unit, ''));
+        ptStyle.height = style.paddingTop;
+        ptStyle.width = style.width;
+        ptStyle.top = pos.top + unit;
+        ptStyle.left = posLeft + unit;
+
+        var padBot = parseInt(style.paddingBottom.replace(unit, ''));
+        pbStyle.height = style.paddingBottom;
+        pbStyle.width = style.width;
+        pbStyle.top = pos.top + pos.height - padBot + unit;
+        pbStyle.left = posLeft + unit;
+
+        var padSideH = pos.height - padBot - padTop + unit;
+        var padSideT = pos.top + padTop + unit;
+        plStyle.height = padSideH;
+        plStyle.width = style.paddingLeft;
+        plStyle.top = padSideT;
+        plStyle.left = pos.left + unit;
+
+        var padRight = parseInt(style.paddingRight.replace(unit, ''));
+        prStyle.height = padSideH;
+        prStyle.width = style.paddingRight;
+        prStyle.top = padSideT;
+        prStyle.left = pos.left + pos.width - padRight + unit;
+    },
+    stop: function stop(editor, sender, opts) {
+        var opt = opts || {};
+        var state = opt.state || '';
+        var method = this.getOffsetMethod(state);
+        var canvas = editor.Canvas;
+        var offsetViewer = canvas[method]();
+        offsetViewer.style.display = 'none';
     }
-
-    var canvas = editor.Canvas;
-    var el = opt.el || '';
-    var pos = opt.elPos || canvas.getElementPos(el);
-    var style = window.getComputedStyle(el);
-    var ppfx = this.ppfx;
-    var stateVar = state + 'State';
-    var method = this.getOffsetMethod(state);
-    var offsetViewer = canvas[method]();
-    offsetViewer.style.display = 'block';
-
-    var marginT = this['marginT' + state];
-    var marginB = this['marginB' + state];
-    var marginL = this['marginL' + state];
-    var marginR = this['marginR' + state];
-    var padT = this['padT' + state];
-    var padB = this['padB' + state];
-    var padL = this['padL' + state];
-    var padR = this['padR' + state];
-
-    if (!this[stateVar]) {
-      var stateLow = state.toLowerCase();
-      var marginName = stateLow + 'margin-v';
-      var paddingName = stateLow + 'padding-v';
-      var marginV = $('<div class="' + ppfx + 'marginName">').get(0);
-      var paddingV = $('<div class="' + ppfx + 'paddingName">').get(0);
-      var marginEls = ppfx + marginName + '-el';
-      var paddingEls = ppfx + paddingName + '-el';
-      var fullMargName = marginEls + ' ' + (ppfx + marginName);
-      var fullPadName = paddingEls + ' ' + (ppfx + paddingName);
-      marginT = $('<div class="' + fullMargName + '-top"></div>').get(0);
-      marginB = $('<div class="' + fullMargName + '-bottom"></div>').get(0);
-      marginL = $('<div class="' + fullMargName + '-left"></div>').get(0);
-      marginR = $('<div class="' + fullMargName + '-right"></div>').get(0);
-      padT = $('<div class="' + fullPadName + '-top"></div>').get(0);
-      padB = $('<div class="' + fullPadName + '-bottom"></div>').get(0);
-      padL = $('<div class="' + fullPadName + '-left"></div>').get(0);
-      padR = $('<div class="' + fullPadName + '-right"></div>').get(0);
-      this['marginT' + state] = marginT;
-      this['marginB' + state] = marginB;
-      this['marginL' + state] = marginL;
-      this['marginR' + state] = marginR;
-      this['padT' + state] = padT;
-      this['padB' + state] = padB;
-      this['padL' + state] = padL;
-      this['padR' + state] = padR;
-      marginV.appendChild(marginT);
-      marginV.appendChild(marginB);
-      marginV.appendChild(marginL);
-      marginV.appendChild(marginR);
-      paddingV.appendChild(padT);
-      paddingV.appendChild(padB);
-      paddingV.appendChild(padL);
-      paddingV.appendChild(padR);
-      offsetViewer.appendChild(marginV);
-      offsetViewer.appendChild(paddingV);
-      this[stateVar] = '1';
-    }
-
-    var unit = 'px';
-    var marginLeftSt = style.marginLeft.replace(unit, '');
-    var marginTopSt = parseInt(style.marginTop.replace(unit, ''));
-    var marginBottomSt = parseInt(style.marginBottom.replace(unit, ''));
-    var mtStyle = marginT.style;
-    var mbStyle = marginB.style;
-    var mlStyle = marginL.style;
-    var mrStyle = marginR.style;
-    var ptStyle = padT.style;
-    var pbStyle = padB.style;
-    var plStyle = padL.style;
-    var prStyle = padR.style;
-    var posLeft = parseInt(pos.left);
-
-    // Margin style
-    mtStyle.height = style.marginTop;
-    mtStyle.width = style.width;
-    mtStyle.top = pos.top - style.marginTop.replace(unit, '') + unit;
-    mtStyle.left = posLeft + unit;
-
-    mbStyle.height = style.marginBottom;
-    mbStyle.width = style.width;
-    mbStyle.top = pos.top + pos.height + unit;
-    mbStyle.left = posLeft + unit;
-
-    var marginSideH = pos.height + marginTopSt + marginBottomSt + unit;
-    var marginSideT = pos.top - marginTopSt + unit;
-    mlStyle.height = marginSideH;
-    mlStyle.width = style.marginLeft;
-    mlStyle.top = marginSideT;
-    mlStyle.left = posLeft - marginLeftSt + unit;
-
-    mrStyle.height = marginSideH;
-    mrStyle.width = style.marginRight;
-    mrStyle.top = marginSideT;
-    mrStyle.left = posLeft + pos.width + unit;
-
-    // Padding style
-    var padTop = parseInt(style.paddingTop.replace(unit, ''));
-    ptStyle.height = style.paddingTop;
-    ptStyle.width = style.width;
-    ptStyle.top = pos.top + unit;
-    ptStyle.left = posLeft + unit;
-
-    var padBot = parseInt(style.paddingBottom.replace(unit, ''));
-    pbStyle.height = style.paddingBottom;
-    pbStyle.width = style.width;
-    pbStyle.top = pos.top + pos.height - padBot + unit;
-    pbStyle.left = posLeft + unit;
-
-    var padSideH = pos.height - padBot - padTop + unit;
-    var padSideT = pos.top + padTop + unit;
-    plStyle.height = padSideH;
-    plStyle.width = style.paddingLeft;
-    plStyle.top = padSideT;
-    plStyle.left = pos.left + unit;
-
-    var padRight = parseInt(style.paddingRight.replace(unit, ''));
-    prStyle.height = padSideH;
-    prStyle.width = style.paddingRight;
-    prStyle.top = padSideT;
-    prStyle.left = pos.left + pos.width - padRight + unit;
-  },
-  stop: function stop(editor, sender, opts) {
-    var opt = opts || {};
-    var state = opt.state || '';
-    var method = this.getOffsetMethod(state);
-    var canvas = editor.Canvas;
-    var offsetViewer = canvas[method]();
-    offsetViewer.style.display = 'none';
-  }
 };
 
 /***/ }),
@@ -34151,6 +34265,7 @@ module.exports = _backbone2.default.View.extend({
     this.listenTo(model, 'change:script', this.render);
     this.listenTo(model, 'change:content', this.updateContent);
     this.listenTo(model, 'change', this.handleChange);
+    this.listenTo(model, 'active', this.onActive);
     this.listenTo(classes, 'add remove change', this.updateClasses);
     $el.data('model', model);
     $el.data('collection', model.get('components'));
@@ -34164,6 +34279,12 @@ module.exports = _backbone2.default.View.extend({
    * Initialize callback
    */
   init: function init() {},
+
+
+  /**
+   * Callback executed when the `active` event is triggered on component
+   */
+  onActive: function onActive() {},
 
 
   /**
@@ -34667,8 +34788,16 @@ module.exports = Backbone.View.extend({
     }
   },
   render: function render() {
-    var config = this.editor.getConfig();
-    this.el.className += ' ' + config.stylePrefix + 'toolbar-item';
+    var editor = this.editor,
+        $el = this.$el,
+        model = this.model;
+
+    var id = model.get('id');
+    var label = model.get('label');
+    var pfx = editor.getConfig('stylePrefix');
+    $el.addClass(pfx + 'toolbar-item');
+    id && $el.addClass(pfx + 'toolbar-item__' + id);
+    label && $el.append(label);
     return this;
   }
 });
@@ -37373,7 +37502,7 @@ module.exports = function () {
     plugins: plugins,
 
     // Will be replaced on build
-    version: '0.14.23',
+    version: '<# VERSION #>',
 
     /**
      * Initializes an editor based on passed options
@@ -37748,9 +37877,16 @@ module.exports = function () {
 
     /**
      * Open the modal window
+     * @param {Object} [opts={}] Options
+     * @param {String|HTMLElement} [opts.title] Title to set for the modal
+     * @param {String|HTMLElement} [opts.content] Content to set for the modal
      * @return {this}
      */
     open: function open() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      opts.title && this.setTitle(opts.title);
+      opts.content && this.setContent(opts.content);
       modal.show();
       return this;
     },
@@ -45258,18 +45394,21 @@ module.exports = PropertyView.extend({
    * */
   openAssetManager: function openAssetManager(e) {
     var that = this;
-    var em = this.em;
+    var em = this.em,
+        modal = this.modal;
+
     var editor = em ? em.get('Editor') : '';
 
     if (editor) {
-      this.modal.setTitle('Select image');
-      this.modal.setContent(this.am.getContainer());
-      this.am.setTarget(null);
       editor.runCommand('open-assets', {
-        target: this.model,
-        onSelect: function onSelect(target) {
-          that.modal.close();
-          that.spreadUrl(target.get('src'));
+        types: ['image'],
+        accept: 'image/*',
+        target: this.getTargetModel(),
+        onClick: function onClick() {},
+        onDblClick: function onDblClick() {},
+        onSelect: function onSelect(asset) {
+          modal.close();
+          that.spreadUrl(asset.get('src'));
         }
       });
     }
@@ -47247,6 +47386,7 @@ module.exports = Backbone.View.extend({
       var input = $('<input type="' + type + '" placeholder="' + plh + '">');
 
       if (value) {
+        md.set({ value: value }, { silent: true });
         input.prop('value', value);
       }
 
@@ -51228,7 +51368,26 @@ module.exports = _backbone2.default.View.extend({
    * @return {Boolean}
    */
   matches: function matches(el, selector, useBody) {
-    return _mixins.matches.call(el, selector);
+    var debug = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+
+
+    var startEl;
+
+    // if we don't have a parentNode, create a node so the 
+    // querySelectorAll() call below can find something. 
+    if (!el.parentNode) {
+      startEl = document.createElement('div');
+      startEl.appendChild(el);
+    } else {
+      startEl = el.parentNode;
+    }
+
+    //startEl = useBody ? startEl.ownerDocument.body : startEl;
+    var els = startEl.querySelectorAll(selector);
+    var i = 0;
+    while (els[i] && els[i] !== el) {
+      ++i;
+    }return !!els[i];
   },
 
 
